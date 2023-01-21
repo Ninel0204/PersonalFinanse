@@ -1,6 +1,7 @@
 package ru.netology;
 
 import org.json.JSONObject;
+
 import java.io.*;
 import java.util.HashMap;
 import java.util.List;
@@ -24,7 +25,7 @@ public class Manager {
     }
 
 
-    public static JSONObject makeJson(Map<String,Integer> mapCosts) {
+    public static JSONObject makeJson(Map<String, Integer> mapCosts) {
 
         String[] maxCategory = HandlerImpl.category(mapCosts);
         JSONObject jsonMaxInner = new JSONObject();
