@@ -36,23 +36,23 @@ public class Manager {
         return jsonMax;
     }
 
-    public static void saveAllDataToBinFile(File dataFile, List<String[]> listProducts) {
+    public static void saveAllDataToBinFile(File dataFile, Map<String, Integer> mapCosts) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(dataFile))) {
-            oos.writeObject(listProducts);
+            oos.writeObject(mapCosts);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
     }
 
 
-    public static List<String[]> loadAllDataFromBinFile(File dataFile) {
-        List<String[]> listProducts = null;
+    public static Map<String, Integer> loadAllDataFromBinFile(File dataFile) {
+        Map<String, Integer> map = null;
         try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(dataFile))) {
-            listProducts = (List<String[]>) ois.readObject();
+            map = ( Map<String, Integer>)  ois.readObject();
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }
-        return listProducts;
+        return map;
     }
 
 }

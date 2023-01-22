@@ -12,13 +12,18 @@ public class Main {
     public static void main(String[] args) {
 
         File tsvFile = new File("categories.tsv");
+        File dataFile = new File("data.bin");
+        Map<String, Integer> mapCosts;
 
         Map<String, String> mapFromFile = Manager.readTSV(tsvFile);
 
-        Set<String> valuesSet = new HashSet<>(mapFromFile.values());
-        Map<String, Integer> mapCosts = valuesSet.stream()
-                .collect(Collectors.toMap(x -> x, y -> 0));
-        mapCosts.put("другое", 0);
+        if (dataFile.exists()) {
+            mapCosts =  Manager.loadAllDataFromBinFile(dataFile);
+        } else {
+            Set<String> valuesSet = new HashSet<>(mapFromFile.values());
+            mapCosts = valuesSet.stream().collect(Collectors.toMap(x -> x, y -> 0));
+            mapCosts.put("другое", 0);
+        }
 
         try (ServerSocket serverSocket = new ServerSocket(8989)) {
             System.out.println("Сервер стартовал");
@@ -43,6 +48,7 @@ public class Main {
 
 
                     JSONObject jsonMax = Manager.makeJson(mapCosts);
+                    Manager.saveAllDataToBinFile(dataFile, mapCosts);
                     out.println(jsonMax);
                 }
             }
