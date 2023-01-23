@@ -13,17 +13,21 @@ public class Main {
 
         File tsvFile = new File("categories.tsv");
         File dataFile = new File("data.bin");
-        Map<String, Integer> mapCosts;
+        List<String[]> listProducts = new ArrayList<>();
+        String category;
 
         Map<String, String> mapFromFile = Manager.readTSV(tsvFile);
+        Set<String> categorySet = new HashSet<>(mapFromFile.values());
+        categorySet.add("другое");
+        Set<String> dateSet = new HashSet<>();
 
         if (dataFile.exists()) {
-            mapCosts =  Manager.loadAllDataFromBinFile(dataFile);
-        } else {
-            Set<String> valuesSet = new HashSet<>(mapFromFile.values());
-            mapCosts = valuesSet.stream().collect(Collectors.toMap(x -> x, y -> 0));
-            mapCosts.put("другое", 0);
+            listProducts = Manager.loadAllDataFromBinFile(dataFile);
+            for (String[] list : listProducts) {
+                dateSet.add(list[2]);
+            }
         }
+
 
         try (ServerSocket serverSocket = new ServerSocket(8989)) {
             System.out.println("Сервер стартовал");
@@ -35,20 +39,25 @@ public class Main {
 
                     JSONObject js = new JSONObject(in.readLine());
                     String title = (String) js.get("title");
-                    int sum = (int) js.get("sum");
+                    String date = (String) js.get("date");
+                    String sum = String.valueOf(js.get("sum"));
+
+                    category = mapFromFile.getOrDefault(title, "другое");
 
 
-                    if (mapFromFile.containsKey(title)) {
-                        int oldSum = mapCosts.get(mapFromFile.get(title));
-                        mapCosts.replace(mapFromFile.get(title), (oldSum + sum));
-                    } else {
-                        int oldSum = mapCosts.get("другое");
-                        mapCosts.replace("другое", (oldSum + sum));
-                    }
+                    String[] string = new String[]{title, category, date, sum};
+                    listProducts.add(string);
+                    dateSet.add(string[2]);
+
+                    Map<String, String> maxCategory = HandlerImpl.category(listProducts, categorySet);
+                    Map<String, String> maxYearCategory = HandlerImpl.periodCategory(listProducts, categorySet, dateSet, 4);
+                    Map<String, String> maxMonthCategory = HandlerImpl.periodCategory(listProducts, categorySet, dateSet, 7);
+                    Map<String, String> maxDayCategory = HandlerImpl.periodCategory(listProducts, categorySet, dateSet, 10);
 
 
-                    JSONObject jsonMax = Manager.makeJson(mapCosts);
-                    Manager.saveAllDataToBinFile(dataFile, mapCosts);
+
+                    JSONObject jsonMax = Manager.makeJson(maxCategory, maxYearCategory, maxMonthCategory, maxDayCategory);
+                    Manager.saveAllDataToBinFile(dataFile, listProducts);
                     out.println(jsonMax);
                 }
             }
